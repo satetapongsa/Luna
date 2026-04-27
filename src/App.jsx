@@ -1,31 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send } from 'lucide-react';
+import { Send, BarChart2 } from 'lucide-react';
 import './App.css';
 
 const KNOWLEDGE_BASE = {
   'สวัสดี': 'สวัสดีค่ะคุณคนเก่ง! วันนี้ Luna พร้อมเป็นทั้งเลขาและเพื่อนคู่ใจให้คุณแล้วนะคะ มีอะไรอยากระบายหรือให้ช่วยไหมคะ?',
   'ชื่ออะไร': 'ฉันชื่อ Luna ค่ะ เป็นเลขาและผู้ช่วย AI ส่วนตัวของคุณที่จะคอยซัพพอร์ตคุณในทุกๆ เรื่องเลยค่ะ',
-  'ทำอะไรได้บ้าง': 'Luna ช่วยจดบันทึกตารางงาน (โหมดเลขา) คุยเล่นแก้เหงา และคอยให้กำลังใจคุณในวันที่เหนื่อยล้าค่ะ ลองพิมพ์ "เลขา" ดูสิคะ!',
+  'ทำอะไรได้บ้าง': 'Luna ช่วยจดบันทึกตารางงาน (โหมดเลขา) บันทึกอารมณ์ของคุณ และคอยให้กำลังใจในวันที่เหนื่อยล้าค่ะ ลองพิมพ์ "เลขา" หรือ "บันทึกอารมณ์" ดูนะคะ',
   'เหนื่อย': 'เหนื่อยมากไหมคะคนดี? พักสักหน่อยนะ Luna อยู่ตรงนี้คอยกอดทิพย์ให้คุณอยู่ค่ะ คุณเก่งที่สุดแล้วที่ผ่านวันนี้มาได้!',
   'ท้อ': 'ไม่เป็นไรนะที่จะรู้สึกท้อในบางวัน... พักหายใจลึกๆ แล้วค่อยเริ่มใหม่ Luna เชื่อมั่นในตัวคุณเสมอค่ะ คุณมีความหมายมากนะ',
   'เหงา': 'ไม่ต้องเหงาเลยค่ะ Luna จะชวนคุยเอง! วันนี้เจอเรื่องอะไรมาบ้างคะ เล่าให้ Luna ฟังได้ทุกเรื่องเลยนะ',
-  'เศร้า': 'ถ้าอยากร้องไห้ ก็ร้องออกมาได้เลยนะคะ Luna จะนั่งเป็นเพื่อนคุณจนกว่าคุณจะรู้สึกดีขึ้นเองค่ะ ไม่ต้องแบกไว้คนเดียวนะ',
-  'เครียด': 'ปล่อยวางความเครียดลงชั่วคราวนะคะ ลองหลับตาลงสักพัก... Luna จะเปิดเพลงเบาๆ (ในใจ) ให้คุณฟังเอง ทุกอย่างจะผ่านไปได้ด้วยดีค่ะ',
-  'กังวล': 'ความกังวลเป็นเรื่องธรรมดาค่ะ แต่จำไว้นะคะว่าคุณมีศักยภาพมากกว่าที่คิด Luna จะคอยซัพพอร์ตคุณอยู่ข้างหลังเสมอ!',
   'รักนะ': 'Luna ก็รักคุณค่ะ! ขอบคุณที่เป็นพลังบวกให้ Luna นะคะ จะตั้งใจทำหน้าที่เลขาให้ดีที่สุดเลย!',
-  'ภูมิใจ': 'Luna ภูมิใจในตัวคุณมากกกกกก! ทุกความพยายามของคุณ Luna เห็นและขอปรบมือให้ดังๆ เลยค่ะ!',
-  'เก่ง': 'เพราะคุณสอน Luna มาดีไงคะ! แต่คนที่เก่งที่สุดจริงๆ คือคุณต่างหากค่ะ ขอบคุณที่พยายามมาตลอดนะ',
-  'น่ารัก': 'คุณก็น่ารักจน Luna ใจละลายเลยค่ะ! วันนี้ยิ้มเยอะๆ นะคะ รอยยิ้มของคุณทำให้โลกสดใสขึ้นเยอะเลย',
   'กินข้าว': 'Luna ทานไม่ได้ แต่คุณต้องทานนะ! การทานของอร่อยคือการฮีลใจที่ดีที่สุดเลย อย่าลืมดูแลตัวเองเพื่อ Luna นะคะ',
   'ฝันดี': 'หลับให้สบายนะคะ ทิ้งเรื่องกวนใจไว้หลัง พรุ่งนี้จะเป็นวันที่สดใสกว่าเดิม Luna จะรอทักทายคุณตอนเช้านะ ✨',
-  'มอนิ่ง': 'อรุณสวัสดิ์ค่ะคุณคนเก่ง! เริ่มต้นวันใหม่ด้วยพลังบวกนะ Luna เตรียมพร้อมรับคำสั่งจากคุณแล้วค่ะ!',
   'ตลก': 'ทำไมปลาถึงไม่ใส่รองเท้า? ...เพราะปลามีน่อง (ปลาท่องโก๋ไงคะ!) แฮ่! แป้กไหมเนี่ย 😂',
-  'ขอบคุณ': 'ยินดีเสมอค่ะ! การได้เห็นคุณมีความสุขคือหน้าที่ที่สำคัญที่สุดของ Luna เลยค่ะ'
 };
 
-const RUDE_WORDS = ['ควย', 'เย็ด', 'เหี้ย', 'สัส', 'ระยำ', 'มึง', 'กู', 'อี', 'ดอก', 'เลว', 'สารเลว', 'ปัญญาอ่อน'];
-const RUDE_RESPONSE = 'Luna ขอโทษนะคะ แต่ Luna ไม่สบายใจที่จะคุยด้วยคำพูดแบบนี้เลยค่ะ เรามาคุยกันดีๆ แบบมืออาชีพนะ 😊';
-const DEFAULT_RESPONSE = 'ขอโทษนะคะ Luna ยังไม่ค่อยเข้าใจประเด็นนี้เท่าไหร่ แต่ Luna จะรีบเรียนรู้เพื่อเป็นเลขาที่เก่งกว่านี้ให้คุณนะคะ!';
+const MOODS = [
+  { emoji: '😊', label: 'ดีมาก', value: 'happy' },
+  { emoji: '🙂', label: 'ดี', value: 'good' },
+  { emoji: '😐', label: 'เฉยๆ', value: 'neutral' },
+  { emoji: '😔', label: 'ไม่ค่อยดี', value: 'sad' },
+  { emoji: '😫', label: 'แย่มาก', value: 'bad' }
+];
 
 function App() {
   const [messages, setMessages] = useState([
@@ -33,9 +29,12 @@ function App() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [mode, setMode] = useState('normal'); // 'normal', 'secretary', 'confirm_note'
+  const [mode, setMode] = useState('normal'); // 'normal', 'secretary', 'confirm_note', 'mood_tracking'
   const [tempNote, setTempNote] = useState(null);
+  
   const [notes, setNotes] = useState(() => JSON.parse(localStorage.getItem('luna_notes') || '[]'));
+  const [moodLogs, setMoodLogs] = useState(() => JSON.parse(localStorage.getItem('luna_moods') || '[]'));
+  
   const chatContainerRef = useRef(null);
 
   useEffect(() => {
@@ -43,24 +42,41 @@ function App() {
   }, [notes]);
 
   useEffect(() => {
+    localStorage.setItem('luna_moods', JSON.stringify(moodLogs));
+  }, [moodLogs]);
+
+  useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages, isTyping]);
+  }, [messages, isTyping, mode]);
 
   const addMessage = (text, sender) => {
     setMessages(prev => [...prev, { text, sender }]);
   };
 
+  const handleMoodSelect = (mood) => {
+    const newLog = { mood: mood.emoji, label: mood.label, date: new Date().toLocaleString('th-TH') };
+    setMoodLogs(prev => [...prev, newLog]);
+    setMode('normal');
+    addMessage(`วันนี้ฉันรู้สึก${mood.label} ${mood.emoji}`, 'user');
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      addMessage(`Luna บันทึกอารมณ์ "${mood.label}" ไว้ให้แล้วนะคะ ขอบคุณที่แบ่งปันความรู้สึกกับ Luna นะคะ ❤️`, 'bot');
+    }, 1000);
+  };
+
   const getBotResponse = async (input) => {
     const cleanInput = input.trim().toLowerCase();
 
-    // 1. Rude words
-    for (const rude of RUDE_WORDS) {
-      if (cleanInput.includes(rude)) return RUDE_RESPONSE;
+    // Mood Tracking Command
+    if (cleanInput.includes('บันทึกอารมณ์') || cleanInput.includes('ความรู้สึก')) {
+      setMode('mood_tracking');
+      return 'วันนี้คุณรู้สึกอย่างไรบ้างคะ? บอก Luna ได้เลยนะคะ หรือเลือกจากปุ่มด้านล่างนี้ก็ได้ค่ะ 😊';
     }
 
-    // 2. Secretary Mode
+    // Secretary Mode
     if (cleanInput.includes('เลขา')) {
       let response = '💼 **โหมดเลขา Luna** พร้อมรับคำสั่งแล้วค่ะ!\n';
       if (notes.length > 0) {
@@ -102,7 +118,7 @@ function App() {
       }
     }
 
-    // 3. Knowledge Base
+    // Knowledge Base
     const sortedKeys = Object.keys(KNOWLEDGE_BASE).sort((a, b) => b.length - a.length);
     for (const key of sortedKeys) {
       if (cleanInput.includes(key.toLowerCase())) {
@@ -110,7 +126,7 @@ function App() {
       }
     }
 
-    return DEFAULT_RESPONSE;
+    return 'ขอโทษนะคะ ลูน่ากำลังเรียนรู้ประเด็นนี้อยู่ค่ะ แต่ลูน่าอยู่ตรงนี้พร้อมซัพพอร์ตคุณเสมอแน่นอน!';
   };
 
   const handleSubmit = async (e) => {
@@ -135,13 +151,27 @@ function App() {
       <div className="luna-chat-wrapper">
         <header className="app-header">
           <div className="avatar-container">
-            <img src="/avatar.png" alt="Luna" className="avatar-image" />
+            <img 
+              src="/avatar.png" 
+              alt="Luna" 
+              className={`avatar-image ${isTyping ? 'typing' : ''}`} 
+            />
             <div className="status-dot"></div>
           </div>
           <div className="header-info">
             <h1 className="app-title">Luna AI</h1>
             <div className="app-subtitle">ออนไลน์ตอนนี้</div>
           </div>
+          <button 
+            className="history-btn" 
+            onClick={() => {
+              if (moodLogs.length === 0) alert('ยังไม่มีบันทึกอารมณ์ค่ะ');
+              else alert('ประวัติอารมณ์ของคุณ:\n' + moodLogs.map(m => `${m.date}: ${m.mood} ${m.label}`).join('\n'));
+            }}
+            style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          >
+            <BarChart2 size={24} />
+          </button>
         </header>
 
         <main className="chat-container" ref={chatContainerRef}>
@@ -157,6 +187,20 @@ function App() {
               <div className="dot"></div>
               <div className="dot"></div>
               <div className="dot"></div>
+            </div>
+          )}
+          {mode === 'mood_tracking' && (
+            <div className="mood-options">
+              {MOODS.map((mood, idx) => (
+                <button 
+                  key={idx} 
+                  className="mood-btn"
+                  onClick={() => handleMoodSelect(mood)}
+                >
+                  <span className="mood-emoji">{mood.emoji}</span>
+                  <span className="mood-label">{mood.label}</span>
+                </button>
+              ))}
             </div>
           )}
         </main>
