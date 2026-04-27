@@ -8,50 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
   </head>
   <body>
-    <div id="app">
-      <header class="app-header">
-        <div class="avatar-container">
-          <img src="/avatar.png" alt="Luna Avatar" class="avatar-image">
-          <div class="status-dot"></div>
-        </div>
-        <div class="header-info">
-          <h1 class="app-title">Luna AI</h1>
-          <div class="app-subtitle">
-            <span class="status-indicator"></span>
-            ออนไลน์ตอนนี้
-          </div>
-        </div>
-      </header>
-
-      <main id="chat-container" class="chat-container">
-        <!-- Messages will appear here -->
-        <div class="message bot">
-          สวัสดีค่ะ! ฉันคือ Luna ผู้ช่วยส่วนตัวของคุณ วันนี้มีอะไรให้ฉันช่วยดูแลไหมคะ? 😊
-        </div>
-      </main>
-
-      <div class="input-area-container">
-        <form id="chat-form" class="chat-form">
-          <input 
-            type="text" 
-            id="user-input" 
-            class="message-input" 
-            placeholder="พิมพ์ข้อความของคุณที่นี่..." 
-            autocomplete="off"
-          >
-          <button type="submit" class="send-button" id="send-btn" title="ส่งข้อความ">
-            <i data-lucide="send"></i>
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <script type="module" src="/main.js"></script>
-    <script>
-      lucide.createIcons();
-    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

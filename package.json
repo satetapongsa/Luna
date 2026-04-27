@@ -1,12 +1,16 @@
 {
-  "name": "chatbot-assistant",
-  "version": "0.0.0",
+  "name": "luna-ai-react",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "lint": "eslint .",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^1.11.0"
   },
   "devDependencies": {
     "vite": "^8.0.10"
