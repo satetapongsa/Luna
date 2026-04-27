@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, BarChart2 } from 'lucide-react';
+import { Send, BarChart2, Trash2, Check, X } from 'lucide-react';
 import './App.css';
 
 const KNOWLEDGE_BASE = {
@@ -24,18 +24,29 @@ const MOODS = [
 ];
 
 function App() {
-  const [messages, setMessages] = useState([
-    { text: 'สวัสดีค่ะ! ฉันคือ Luna ผู้ช่วยส่วนตัวของคุณ วันนี้มีอะไรให้ฉันช่วยดูแลไหมคะ? 😊', sender: 'bot' }
-  ]);
+  // 1. Initialize states from LocalStorage
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('luna_chat_history');
+    return saved ? JSON.parse(saved) : [
+      { text: 'สวัสดีค่ะ! ฉันคือ Luna ผู้ช่วยส่วนตัวของคุณ วันนี้มีอะไรให้ฉันช่วยดูแลไหมคะ? 😊', sender: 'bot' }
+    ];
+  });
+  
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [mode, setMode] = useState('normal'); // 'normal', 'secretary', 'confirm_note', 'mood_tracking'
+  const [mode, setMode] = useState('normal'); 
   const [tempNote, setTempNote] = useState(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   
   const [notes, setNotes] = useState(() => JSON.parse(localStorage.getItem('luna_notes') || '[]'));
   const [moodLogs, setMoodLogs] = useState(() => JSON.parse(localStorage.getItem('luna_moods') || '[]'));
   
   const chatContainerRef = useRef(null);
+
+  // 2. Persist data on change
+  useEffect(() => {
+    localStorage.setItem('luna_chat_history', JSON.stringify(messages));
+  }, [messages]);
 
   useEffect(() => {
     localStorage.setItem('luna_notes', JSON.stringify(notes));
@@ -55,6 +66,13 @@ function App() {
     setMessages(prev => [...prev, { text, sender }]);
   };
 
+  const handleClearChat = () => {
+    setMessages([
+      { text: 'ล้างข้อมูลการคุยเรียบร้อยแล้วค่ะ เริ่มต้นบทสนทนาใหม่ได้เลยนะคะ 😊', sender: 'bot' }
+    ]);
+    setShowClearConfirm(false);
+  };
+
   const handleMoodSelect = (mood) => {
     const newLog = { mood: mood.emoji, label: mood.label, date: new Date().toLocaleString('th-TH') };
     setMoodLogs(prev => [...prev, newLog]);
@@ -70,13 +88,11 @@ function App() {
   const getBotResponse = async (input) => {
     const cleanInput = input.trim().toLowerCase();
 
-    // Mood Tracking Command
     if (cleanInput.includes('บันทึกอารมณ์') || cleanInput.includes('ความรู้สึก')) {
       setMode('mood_tracking');
       return 'วันนี้คุณรู้สึกอย่างไรบ้างคะ? บอก Luna ได้เลยนะคะ หรือเลือกจากปุ่มด้านล่างนี้ก็ได้ค่ะ 😊';
     }
 
-    // Secretary Mode
     if (cleanInput.includes('เลขา')) {
       let response = '💼 **โหมดเลขา Luna** พร้อมรับคำสั่งแล้วค่ะ!\n';
       if (notes.length > 0) {
@@ -118,7 +134,6 @@ function App() {
       }
     }
 
-    // Knowledge Base
     const sortedKeys = Object.keys(KNOWLEDGE_BASE).sort((a, b) => b.length - a.length);
     for (const key of sortedKeys) {
       if (cleanInput.includes(key.toLowerCase())) {
@@ -162,17 +177,37 @@ function App() {
             <h1 className="app-title">Luna AI</h1>
             <div className="app-subtitle">ออนไลน์ตอนนี้</div>
           </div>
-          <button 
-            className="history-btn" 
-            onClick={() => {
-              if (moodLogs.length === 0) alert('ยังไม่มีบันทึกอารมณ์ค่ะ');
-              else alert('ประวัติอารมณ์ของคุณ:\n' + moodLogs.map(m => `${m.date}: ${m.mood} ${m.label}`).join('\n'));
-            }}
-            style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-          >
-            <BarChart2 size={24} />
-          </button>
+          
+          <div className="header-actions">
+            <button className="icon-btn" title="ประวัติอารมณ์" onClick={() => {
+                if (moodLogs.length === 0) alert('ยังไม่มีบันทึกอารมณ์ค่ะ');
+                else alert('ประวัติอารมณ์ของคุณ:\n' + moodLogs.map(m => `${m.date}: ${m.mood} ${m.label}`).join('\n'));
+            }}>
+              <BarChart2 size={22} />
+            </button>
+            <button className="icon-btn delete" title="ล้างแชท" onClick={() => setShowClearConfirm(true)}>
+              <Trash2 size={22} />
+            </button>
+          </div>
         </header>
+
+        {/* Confirmation Overlay */}
+        {showClearConfirm && (
+          <div className="confirm-overlay">
+            <div className="confirm-card">
+              <h3>ยืนยันการล้างข้อมูล?</h3>
+              <p>ประวัติการแชททั้งหมดจะถูกลบออกจากเครื่องของคุณอย่างถาวร</p>
+              <div className="confirm-btns">
+                <button className="confirm-btn cancel" onClick={() => setShowClearConfirm(false)}>
+                  <X size={18} /> ยกเลิก
+                </button>
+                <button className="confirm-btn ok" onClick={handleClearChat}>
+                  <Check size={18} /> ตกลง
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <main className="chat-container" ref={chatContainerRef}>
           {messages.map((msg, idx) => (
@@ -192,11 +227,7 @@ function App() {
           {mode === 'mood_tracking' && (
             <div className="mood-options">
               {MOODS.map((mood, idx) => (
-                <button 
-                  key={idx} 
-                  className="mood-btn"
-                  onClick={() => handleMoodSelect(mood)}
-                >
+                <button key={idx} className="mood-btn" onClick={() => handleMoodSelect(mood)}>
                   <span className="mood-emoji">{mood.emoji}</span>
                   <span className="mood-label">{mood.label}</span>
                 </button>
@@ -207,6 +238,17 @@ function App() {
 
         <div className="input-area-container">
           <form className="chat-form" onSubmit={handleSubmit}>
+            <button 
+              type="button" 
+              className="mood-trigger-btn" 
+              title="บันทึกอารมณ์"
+              onClick={() => {
+                setMode('mood_tracking');
+                addMessage('วันนี้คุณรู้สึกอย่างไรบ้างคะ? บอก Luna ได้เลยนะคะ หรือเลือกจากปุ่มด้านล่างนี้ก็ได้ค่ะ 😊', 'bot');
+              }}
+            >
+              <span className="mood-emoji">❤️</span>
+            </button>
             <input 
               type="text" 
               className="message-input" 
