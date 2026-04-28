@@ -1019,7 +1019,12 @@ function App() {
       <div className="luna-chat-wrapper">
         <header className="app-header">
           <div className="avatar-container">
-            <div className={`avatar-emoji-wrapper ${isTyping ? 'typing' : ''}`}>
+            <img 
+              src="/avatar.png" 
+              alt="ลูน่า" 
+              className={`avatar-image ${isTyping ? 'typing' : ''}`} 
+            />
+            <div className="avatar-emoji-badge">
               {botEmotion}
             </div>
             <div className="status-dot"></div>
