@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, BarChart2, Trash2, Check, X } from 'lucide-react';
+import { Send, BarChart2, Trash2, Check, X, Moon, Sun } from 'lucide-react';
 import './App.css';
 
 const KNOWLEDGE_BASE = {
@@ -445,6 +445,11 @@ function App() {
   const [mode, setMode] = useState(() => localStorage.getItem('luna_user_name') ? 'normal' : 'waiting_for_name'); 
   const [tempNote, setTempNote] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('luna_dark_mode');
+    return saved ? saved === 'true' : true;
+  });
+  const [botEmotion, setBotEmotion] = useState('😊');
   
   const [notes, setNotes] = useState(() => JSON.parse(localStorage.getItem('luna_notes') || '[]'));
   const [moodLogs, setMoodLogs] = useState(() => JSON.parse(localStorage.getItem('luna_moods') || '[]'));
@@ -471,6 +476,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('luna_moods', JSON.stringify(moodLogs));
   }, [moodLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('luna_dark_mode', isDarkMode);
+  }, [isDarkMode]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -519,6 +528,52 @@ function App() {
 
   const getBotResponse = async (input) => {
     const cleanInput = input.trim().toLowerCase();
+
+    // --- สภาพอากาศ (Real Weather API) ---
+    if (cleanInput.includes('สภาพอากาศ') || cleanInput.includes('พยากรณ์อากาศ') || cleanInput.includes('อากาศวันนี้')) {
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=13.75398&longitude=100.50144&current_weather=true');
+        const data = await res.json();
+        const temp = data.current_weather.temperature;
+        return `สภาพอากาศกรุงเทพตอนนี้ อุณหภูมิประมาณ ${temp} องศาเซลเซียสค่ะ 🌤️ ออกไปข้างนอกอย่าลืมดูแลตัวเองด้วยนะคะ!`;
+      } catch (e) {
+        return 'ลูน่าเช็คสภาพอากาศไม่ได้ตอนนี้ค่ะ มองออกไปนอกหน้าต่างแทนนะคะ 😅';
+      }
+    }
+
+    // --- เกมทายเลข (Mini-game) ---
+    if (cleanInput.startsWith('ทายเลข')) {
+      const parts = cleanInput.split(' ');
+      if (parts.length < 2 || isNaN(parts[1])) return 'พิมพ์ "ทายเลข [ตัวเลข 1-10]" มาได้เลยค่ะ ลูน่าพร้อมเล่นแล้ว!';
+      const userNum = parseInt(parts[1]);
+      const botNum = Math.floor(Math.random() * 10) + 1;
+      if (userNum === botNum) return `เก่งมากค่ะ! ลูน่าคิดเลข ${botNum} พอดีเลย คุณอ่านใจลูน่าได้แน่ๆ 🎉✨`;
+      return `ผิดค่ะ! ลูน่าคิดเลข ${botNum} ไว้ต่างหากล่ะ พลาดแล้วน้า 😝`;
+    }
+
+    // --- เกมเป่ายิ้งฉุบ (Mini-game) ---
+    if (cleanInput.includes('เป่ายิ้งฉุบ') || cleanInput.includes('เป่ายิงฉุบ')) {
+      if (!cleanInput.includes('ค้อน') && !cleanInput.includes('กรรไกร') && !cleanInput.includes('กระดาษ')) {
+        return 'มาเล่นเป่ายิ้งฉุบกันค่ะ! พิมพ์ "เป่ายิ้งฉุบ ค้อน", "เป่ายิ้งฉุบ กรรไกร" หรือ "เป่ายิ้งฉุบ กระดาษ" มาได้เลย ✌️✊✋';
+      }
+      const choices = ['ค้อน', 'กรรไกร', 'กระดาษ'];
+      const botChoice = choices[Math.floor(Math.random() * choices.length)];
+      let userChoice = '';
+      if (cleanInput.includes('ค้อน')) userChoice = 'ค้อน';
+      if (cleanInput.includes('กรรไกร')) userChoice = 'กรรไกร';
+      if (cleanInput.includes('กระดาษ')) userChoice = 'กระดาษ';
+      
+      let result = '';
+      if (userChoice === botChoice) result = 'เสมอจ้า! ใจตรงกันเฉยเลย 😳';
+      else if (
+        (userChoice === 'ค้อน' && botChoice === 'กรรไกร') ||
+        (userChoice === 'กรรไกร' && botChoice === 'กระดาษ') ||
+        (userChoice === 'กระดาษ' && botChoice === 'ค้อน')
+      ) result = 'คุณชนะค่ะ! ลูน่ายอมแพ้แล้ววว 😭';
+      else result = 'ลูน่าชนะ! อ่อนแอก็แพ้ไปนะคะ 🤣✨';
+      
+      return `คุณออก: ${userChoice}\nลูน่าออก: ${botChoice}\n\n**${result}**`;
+    }
 
     if (cleanInput === '--help' || cleanInput === '-h' || cleanInput === 'help') {
       return `✨ คู่มือการใช้งาน ลูน่า (Luna) ฉบับลับเฉพาะ ✨\n\n📌 ฟีเจอร์หลัก:\n1. โหมดเลขา: พิมพ์คำว่า "ลูน่า" เพื่อเข้าโหมดจดบันทึก\n2. ระบบความจำ: พิมพ์ "จำอะไรได้บ้าง" เพื่อดูสิ่งที่ลูน่าจำได้\n3. เปลี่ยนชื่อ: พิมพ์ "เรียกเราว่า [ชื่อ]" หรือ "เราชื่อ [ชื่อ]"\n4. บันทึกอารมณ์: กดไอคอนรูปหัวใจ 💖 ข้างกล่องแชท\n5. คลังความสามารถ: พิมพ์ "/ลูน่าลิส" เพื่อดูลิสต์คำศัพท์ทั้งหมด\n\n💬 พิมพ์ยังไงให้ลูน่าไม่งง (คุยลื่นไหลสุดๆ):\n- พิมพ์สั้นๆ ตรงประเด็น: ลูน่าจะตอบได้ดีมาก เช่น "เบื่องาน", "รถติด", "อกหัก", "ไม่มีเงิน", "ปวดหลัง", "เม้าท์มอย", "ตัวมารดา"\n- บ่นระบายอารมณ์เต็มที่: ลูน่าคือเพื่อนที่ปลอดภัย พิมพ์ "เหนื่อย", "ท้อ", หรือแม้แต่คำหยาบตอนหงุดหงิด ลูน่าจะไม่โกรธแต่จะช่วยปลอบใจ\n- เมื่อลูน่าตอบไม่ตรงคำถาม: ไม่ต้องหงุดหงิดน้า ลูน่าถูกปรับให้เป็น "ผู้ฟังที่ดี" ลูน่าจะคอยตอบรับเบาๆ ให้คุณสามารถระบายความรู้สึกต่อได้อย่างสบายใจค่ะ 😊`;
@@ -928,6 +983,16 @@ function App() {
     return fallbacks[Math.floor(Math.random() * fallbacks.length)];
   };
 
+  const extractEmotion = (text) => {
+    if (text.includes('😭') || text.includes('เศร้า') || text.includes('🥺') || text.includes('กอด') || text.includes('เหนื่อย') || text.includes('ท้อ')) return '🥺';
+    if (text.includes('😂') || text.includes('🤣') || text.includes('😆') || text.includes('😝') || text.includes('ขำ')) return '😆';
+    if (text.includes('โกรธ') || text.includes('😠') || text.includes('😤') || text.includes('สัส') || text.includes('ควย') || text.includes('เหี้ย') || text.includes('ยอมแพ้แล้ววว')) return '😤';
+    if (text.includes('รัก') || text.includes('🥰') || text.includes('💖') || text.includes('❤️') || text.includes('จีบ')) return '🥰';
+    if (text.includes('คิดเลข') || text.includes('🤓') || text.includes('องศา')) return '🤓';
+    if (text.includes('✨') || text.includes('🎉') || text.includes('🤩')) return '🤩';
+    return '😊';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -944,20 +1009,19 @@ function App() {
     
     setTimeout(() => {
       setIsTyping(false);
+      setBotEmotion(extractEmotion(response));
       addMessage(response, 'bot');
     }, typingDelay);
   };
 
   return (
-    <div className="luna-app-container">
+    <div className={`luna-app-container ${!isDarkMode ? 'light-mode' : ''}`}>
       <div className="luna-chat-wrapper">
         <header className="app-header">
           <div className="avatar-container">
-            <img 
-              src="/avatar.png" 
-              alt="ลูน่า" 
-              className={`avatar-image ${isTyping ? 'typing' : ''}`} 
-            />
+            <div className={`avatar-emoji-wrapper ${isTyping ? 'typing' : ''}`}>
+              {botEmotion}
+            </div>
             <div className="status-dot"></div>
           </div>
           <div className="header-info">
@@ -966,6 +1030,9 @@ function App() {
           </div>
           
           <div className="header-actions">
+            <button className="icon-btn" title={isDarkMode ? "เปิดโหมดสว่าง" : "เปิดโหมดมืด"} onClick={() => setIsDarkMode(!isDarkMode)}>
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
             <button className="icon-btn delete" title="ล้างแชท" onClick={() => setShowClearConfirm(true)}>
               <Trash2 size={22} />
             </button>
